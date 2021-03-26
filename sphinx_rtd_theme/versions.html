@@ -1,0 +1,92 @@
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"></span>
+    v: {{ version }}
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    <dl>
+      <dt id="pennsieve-version-list"></dt>
+    </dl>
+   </div>
+</div>
+
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+<script type="text/javascript">
+
+  // Add a link to the given version of the documentation
+  function addVersionLink(fragment, baseUrl, version) {
+    var entry = document.createElement('dd');
+    var link = document.createElement('a')
+    link.textContent = version;
+    link.href = baseUrl + version + '/index.html';
+    entry.appendChild(link);
+    fragment.appendChild(entry);
+  }
+
+  function displayReleases(fragment, json) {
+
+    // get docs URL from PyPi project_urls field, if it exists
+    var baseUrl = json &&
+        json.info &&
+        json.info.project_urls &&
+        json.info.project_urls.Documentation;
+
+    // default, if not found
+    if (!baseUrl) {
+      baseUrl = '/python/'
+    }
+    if (baseUrl[baseUrl.length - 1] != '/') {
+      baseUrl += '/';
+    }
+
+    // add link to latest version
+    addVersionLink(fragment, baseUrl, 'latest');
+
+    var releases = json && json.releases ? Object.keys(json.releases) : []
+    releases
+      // versions older than 2.3.1 don't have documentation - ignore them
+      .filter(function(x){
+        return semver(x) > semver('2.3.1');
+      })
+      // most recent version first
+      .sort(function(x, y){
+        return semver(x) < semver(y);
+      })
+      .forEach(function(version) {
+        addVersionLink(fragment, baseUrl, version);
+      });
+  }
+
+  // Poor-man's Semver. This will work fine until we have five digits in a
+  // single component of the version number, which seems unlikely to ever happen.
+  //
+  // Pad major/minor/patch so that "2.10.1" > "2.3.2"
+  function semver(version) {
+    return version.split(".").map(function(v) {
+      return Number(v) + 10000;
+    })
+  }
+
+  function returnJSON(response) {
+    return response.json();
+  }
+
+  function handleSuccess(json) {
+    // create a document fragment to build up dom elements in memory
+    var fragment = document.createDocumentFragment();
+    // sort and display release version links
+    displayReleases(fragment, json)
+    // append fragment to dom
+    var versions = document.querySelector("#pennsieve-version-list");
+    if (versions) {
+      versions.appendChild(fragment);
+    }
+  }
+
+  // Get version info from PyPi
+  fetch('https://pypi.org/pypi/pennsieve/json')
+    .then(returnJSON)
+    .then(handleSuccess);
+
+</script>

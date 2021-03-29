@@ -9,9 +9,9 @@
 .. _demo: http://docs.readthedocs.org
 .. _hidden: http://sphinx-doc.org/markup/toctree.html
 
-**************************
+************************************
 Pennsieve Read the Docs Sphinx Theme
-**************************
+************************************
 
 .. contents::
 
